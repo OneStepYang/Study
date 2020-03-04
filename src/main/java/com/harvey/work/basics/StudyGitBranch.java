@@ -8,4 +8,7 @@ package com.harvey.work.basics;
  * @create: 2020-03-04 19:38
  */
 public class StudyGitBranch {
+    public static void main(String[] args) {
+
+    }
 }

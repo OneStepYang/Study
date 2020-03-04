@@ -40,12 +40,25 @@ spring:
     # 合并多个DruidDataSource的监控数据
     druid.useGlobalDataSourceStat: true
   redis:
+    timeout: 6000ms
     host: 182.92.67.19
     port: 6379
     password: Abcd1234!
     #clientName: null
-    database: 7 #选择使用哪个数据库0~15
-    
+    database: 0 #选择使用哪个数据库0~15
+    lettuce:
+      pool:
+        max-active: 100  #连接池最大连接数（使用负值表示没有限制）
+        max-idle: 50   #连接池中的最大空闲连接
+        min-idle: 20       # 连接池中的最小空闲连接
+        max-wait: -1    # 连接池最大阻塞等待时间（使用负值表示没有限制）
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    content-type: text/html
+    encoding: UTF-8
+
 mybatis:
   type-aliases-package: com.harvey.work.entity
 logging:

@@ -121,7 +121,7 @@ public class DruidDBSource {
 	        return filterRegistrationBean;
 	    }
 	    
-	    @Bean(destroyMethod = "close",initMethod = "init")
+	    @Bean//(destroyMethod = "close",initMethod = "init")
 		@ConfigurationProperties(prefix="spring.datasource") //加载时读取指定的配置信息,前缀为spring.datasource
 		public DataSource druidDataSource() {
 			return new DruidDataSource();

@@ -8,7 +8,6 @@ import org.springframework.context.annotation.ImportResource;
 
 @SpringBootApplication
 //@ServletComponentScan
-@ComponentScan
 @MapperScan("com.harvey.work.mapper")
 @ImportResource(locations = { "classpath:druid-bean.xml" })
 public class StudyApplication {

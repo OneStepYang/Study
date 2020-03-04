@@ -86,7 +86,8 @@ public class AddWaterMark {
 			Graphics2D g2 = bufferedImage.createGraphics();
 			g2.drawImage(buImage, 0, 0, width, height, null);
 			Color color2 = new Color(215, 173, 103);
-			Font font2 = new Font("宋体", 0, 70);
+			Font font2 = new Font("微软雅黑", 0, 65);
+			//Font font2 = new Font("宋体", 0, 65);
 			g2.setColor(color2);
 			g2.setFont(font2);
 			int textHeight2 = g2.getFontMetrics().getHeight();
@@ -126,6 +127,7 @@ public class AddWaterMark {
 			flag = true;
 		}
 		ll = (int) Math.ceil(ll / 3.0D);
+		ll = 14;
 		System.out.println(ll);
 		ArrayList songArr = new ArrayList();
 		if (orderFlag) {
@@ -137,7 +139,7 @@ public class AddWaterMark {
 				String regex1 = ".*[a-zA-z0-9].*";
 				boolean result = string.matches(regex1);
 				if (result)
-					length = (int) Math.ceil(length / 1.80D);
+					length = (int) Math.ceil(length / 1.90D);
 
 				if (length == 1)
 					two.addFirst(string);
@@ -241,7 +243,7 @@ public class AddWaterMark {
 		}
 		System.out.println();
 		Color color = new Color(255, 255, 255);
-		Font font = new Font("宋体", 0, 80);
+		Font font = new Font("宋体", 0, 70);
 		InputStream returnIs = null;
 		try {
 			int x;
@@ -258,29 +260,29 @@ public class AddWaterMark {
 			int textHeight = g.getFontMetrics().getHeight();
 			for (int i = 0; i < ll; ++i) {
 				x = (int) (width * 0.2D - (getWatermarkLength((String) songArr.get(i), g) / 2));
-				y = (int) (height * 0.29D + textHeight * 1.8500 * (i + 1));
+				y = (int) (height * 0.29D + textHeight * 1.450 * (i + 1));
 				g.drawString((String) songArr.get(i), x, y);
 			}
 			if(flag) {
 				for (int i = 0; i < ll-1; ++i) {
 					x = (int) (width * 0.765D - (getWatermarkLength((String) songArr.get(i + ll), g) / 2));
-					y = (int) (height * 0.29D + textHeight * 1.8500 * (i + 1));
+					y = (int) (height * 0.29D + textHeight * 1.450 * (i + 1));
 					g.drawString((String) songArr.get(i + ll), x, y);
 				}
 				for (int i = 0; i < songArr.size() - (2 * ll)+1; ++i) {
 					x = (int) (width * 0.475D - (getWatermarkLength((String) songArr.get(i-1 + ll * 2), g) / 2));
-					y = (int) (height * 0.29D + textHeight * 1.8500 * (i + 1));
+					y = (int) (height * 0.29D + textHeight * 1.450 * (i + 1));
 					g.drawString((String) songArr.get(i-1 + ll * 2), x, y);
 				}
 			}else {
 				for (int i = 0; i < ll; ++i) {
 					x = (int) (width * 0.765D - (getWatermarkLength((String) songArr.get(i + ll), g) / 2));
-					y = (int) (height * 0.29D + textHeight * 1.8500 * (i + 1));
+					y = (int) (height * 0.29D + textHeight * 1.450 * (i + 1));
 					g.drawString((String) songArr.get(i + ll), x, y);
 				}
 				for (int i = 0; i < songArr.size() - (2 * ll); ++i) {
 					x = (int) (width * 0.475D - (getWatermarkLength((String) songArr.get(i + ll * 2), g) / 2));
-					y = (int) (height * 0.29D + textHeight * 1.8500 * (i + 1));
+					y = (int) (height * 0.29D + textHeight * 1.450 * (i + 1));
 					g.drawString((String) songArr.get(i + ll * 2), x, y);
 				}
 			}

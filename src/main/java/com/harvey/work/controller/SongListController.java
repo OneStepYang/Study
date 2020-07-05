@@ -9,6 +9,12 @@ import java.util.regex.Pattern;
 
 import com.harvey.work.entity.SongList;
 import com.harvey.work.util.AddWaterMark;
+import com.harvey.work.util.SongListUtils;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.zip.Zip64Mode;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,89 +27,146 @@ import javax.servlet.http.HttpServletResponse;
 
 //@RestController //需要返回页面，所以不加这个注解
 @Controller
+@RequestMapping({"/"})
 public class SongListController
 {
   @GetMapping({"/create"})
-  public String aaaPage(){
-    //ModelAndView mv = new ModelAndView();
-    //mv.setViewName("test");
-    return "songList";
-  }
-  @PostMapping({"/create"})
-  public void create(SongList songList,HttpServletResponse res) {
+  public void create(String singer, String songs, int begin, HttpServletResponse response)
+  {
+    try
     {
-      res.setHeader("content-type", "application/x-jpg");
-      res.setContentType("application/x-jpg");
-      OutputStream os = null;
-      try {
-        os = res.getOutputStream();
-        int index;
-        String fileName = songList.getName()+"歌单（"+songList.getOrder()+"）";
-        String title = "好声音—"+songList.getName();
-        String order = "—歌曲名单（"+songList.getOrder()+"）—";
-        String songs = songList.getSongStr().replace("，", ",");
+      songs = songs.replace("，", ",");
+      String[] songsArr = songs.split(",");
+
+      songsArr = SongListUtils.StringArrOrder(songsArr, 0, songsArr.length - 1);
+      System.out.println("一共有" + songsArr.length + "首歌！");
+
+      boolean flag = songsArr[(songsArr.length - 1)].length() > 14;
+      int[] lengthArr = SongListUtils.countQuantity(songsArr.length, flag);
+      System.out.println("一共有" + lengthArr.length + "张歌单！");
+
+      String[] han = { "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二", "十三", "十四", "十五" };
+      int hasMarked = 0;
+
+      ZipArchiveOutputStream zous = new ZipArchiveOutputStream(response.getOutputStream());
+      zous.setUseZip64(Zip64Mode.AsNeeded);
+      for (int i = 0; i < lengthArr.length; ++i)
+      {
+        String[] songsArrThis;
+        InputStream fis6;
+        if ((i == lengthArr.length - 1) && (flag)) {
+          songsArrThis = new String[lengthArr[i] * 2];
+          System.arraycopy(songsArr, hasMarked, songsArrThis, 0, Math.min(songsArr.length - hasMarked, lengthArr[i] * 2));
+        } else {
+          songsArrThis = new String[lengthArr[i] * 3];
+          System.arraycopy(songsArr, hasMarked, songsArrThis, 0, Math.min(songsArr.length - hasMarked, lengthArr[i] * 3));
+        }
+        String fileName = singer + "歌单（" + han[(i + begin)] + "）.jpg";
+        //String title = "玛雅乐团—" + singer;
+        //String order = "—歌曲名单（" + han[(i + begin)] + "）—";
+        ClassPathResource resource = new ClassPathResource("newBG.jpg");
+        if ((i == lengthArr.length - 1) && (flag))
+          resource = new ClassPathResource("songListTwo.jpg");
+
+        String fileType = "jpg";
+        InputStream fis = resource.getInputStream();
+        //InputStream fis1 = SongListUtils.addWaterMarkTitle(fis, fileType, title);
+        //InputStream fis2 = SongListUtils.addWaterMarkOrder(fis1, fileType, order);
+
+        if ((i == lengthArr.length - 1) && (flag))
+          fis6 = SongListUtils.addWaterMarkTwoRows(fis, fileType, songsArrThis, lengthArr[i]);
+        else
+          fis6 = SongListUtils.addWaterMarkSongs(fis, fileType, songsArrThis, lengthArr[i]);
+
+        byte[] bytes = new byte[1024];
+        response.setHeader("Content-Type", "application/x-zip-compressed");
+        response.setHeader("Content-Disposition", "attachment;filename=" + singer + ".zip");
+        ArchiveEntry entry = new ZipArchiveEntry(fileName);
+        zous.putArchiveEntry(entry);
+        int index = 0;
+        while ((index = fis6.read(bytes)) != -1)
+          zous.write(bytes);
+
+        zous.closeArchiveEntry();
+        fis.close();
+        hasMarked += lengthArr[i] * 3;
+        System.out.println("第" + han[i] + "张歌单已经做完！");
+      }
+      zous.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void main(String[] args)
+  {
+    String singer;
+    String[] songsArr;
+    boolean flag;
+    int[] lengthArr;
+    String[] han;
+    int hasMarked;
+    int i;
+    try {
+      singer = "梓潼";
+      String songs = "I Believe，Nothing's Gonna Change My Love For You，Die A Happy Man，Dear Life，That Girl，Toe，Must Be Doing Something Right，Cry On My Shoulder，Take Me Home Country Roads，You're Beautiful，Waiting For You，W-H-Y，Five Hundred Miles，Take Me To You Heart，春泥，青春纪念册，拯救，特别的爱给特别的你，牵挂你的人是我，浪子回头，花香，我该走了吗，红颜旧，蟑螂小强，后来，过火，信仰，体面，初爱，解脱，放生，梦一场，王妃，新不了情，如果没有你，会痛的石头，月亮代表谁的心，爱很简单，小镇姑娘，第一千个昼夜，台北寂寞部屋，五月的雪，下沙，恋上另一个人，自由，爱我别走，握你的手，第一次，勇气，我不会唱歌，第二顺位，最近，听我爱你，手放开，远走高飞，你那么爱他，痴心绝对，晴天，烟花易冷，安静，黑色幽默，退后，成都，需要人陪，你不知道的事，我们的歌，爱的就是你，不可能错过你，白狐狸，安全感，江南，一千年以后，豆浆油条，翅膀，醉赤壁，爱笑的眼睛";
+      songs = songs.replace("，", ",");
+      songsArr = songs.split(",");
+
+      songsArr = SongListUtils.StringArrOrder(songsArr, 0, songsArr.length - 1);
+      System.out.println("一共有" + songsArr.length + "首歌！");
+
+      flag = songsArr[(songsArr.length - 1)].length() > 14;
+      System.out.println("是否有两列的歌单：" + flag);
+      lengthArr = SongListUtils.countQuantity(songsArr.length, flag);
+      System.out.println("一共有" + lengthArr.length + "张歌单！");
+
+      han = new String[] { "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二", "十三", "十四", "十五" };
+      hasMarked = 0;
+      for (i = 0; i < lengthArr.length; ++i)
+      {
+        String[] songsArrThis;
+        InputStream fis6;
+        if ((i == lengthArr.length - 1) && (flag)) {
+          songsArrThis = new String[lengthArr[i] * 2];
+          System.arraycopy(songsArr, hasMarked, songsArrThis, 0, Math.min(songsArr.length - hasMarked, lengthArr[i] * 2));
+        } else {
+          songsArrThis = new String[lengthArr[i] * 3];
+          System.arraycopy(songsArr, hasMarked, songsArrThis, 0, Math.min(songsArr.length - hasMarked, lengthArr[i] * 3));
+        }
+        String fileName = singer + "歌单（" + han[i] + "）";
+        String title = "玛雅乐团—" + singer;
+        String title2 = "M  a  Y  a     Y  u  e  T  u  a  n";
+        String order = "—歌曲名单（" + han[i] + "）—";
+
         File file = new File("./src/main/resources/songlistWidth.jpg");
+        if ((i == lengthArr.length - 1) && (flag))
+          file = new File("./src/main/resources/songlistTwo.jpg");
 
         String fileType = "jpg";
         InputStream fis = new FileInputStream(file);
-        AddWaterMark addWaterMark = new AddWaterMark();
-        InputStream fis3 = addWaterMark.addWaterMarkTitle(fis, fileType, title);
-        InputStream fis5 = addWaterMark.addWaterMarkOrder(fis3, fileType, order);
-        InputStream fis6 = addWaterMark.addWaterMarkSongs(fis5, fileType, songs.split(","), true);
+        InputStream fis1 = SongListUtils.addWaterMarkTitle(fis, fileType, title);
+        InputStream fis2 = SongListUtils.addWaterMarkOrder(fis1, fileType, order);
+
+        if ((i == lengthArr.length - 1) && (flag))
+          fis6 = SongListUtils.addWaterMarkTwoRows(fis2, fileType, songsArrThis, lengthArr[i]);
+        else
+          fis6 = SongListUtils.addWaterMarkSongs(fis2, fileType, songsArrThis, lengthArr[i]);
+
         byte[] bytes = new byte[1024];
+        FileOutputStream downloadFile = new FileOutputStream("D:\\" + fileName + ".jpg");
+        int index = 0;
         while ((index = fis6.read(bytes)) != -1) {
-          os.write(bytes, 0, index);
-          os.flush();
+          downloadFile.write(bytes, 0, index);
+          downloadFile.flush();
         }
-        os.close();
+        downloadFile.close();
         fis.close();
-      } catch (Exception e) {
-        e.printStackTrace(); }
-    }
-  }
-
-  public static void main(String[] args) {
-    try {
-      int index=0;
-      String fileName = "钟停歌单（二）";
-      String title = "玛雅乐团—钟停";
-      String title2 = "M  a  Y  a     Y  u  e  T  u  a  n";
-      String order = "—歌曲名单（二）—";
-      String songs = "独家记忆,爱我别走,我好想你,越过山丘,虎口脱险,你瞒我瞒,说散就散,光年之外,一生有你,一生所爱,往后余生,浪子回头,等一分钟,就是爱你,kiss goodbye,你是我的眼,女人的选择,只是太爱你,贝加尔湖畔,想你想疯了,可惜不是你,突然想起你,天使的翅膀,拿走了什么,慢慢喜欢你,八十年代的歌,再见吧喵小姐,流着泪说分手,说好的幸福呢,你一定要幸福,永不失联的爱,我已经爱上你,关于郑州的记忆,父亲写的散文诗,你就不要想起我,有没有人告诉你,你怎么舍得我难过,一千个伤心的理由,这一生关于你的风景,世界这么大还是遇见你";
-      songs = songs.replace("，", ",");
-      File file = new File("./src/main/resources/songlistWidth.jpg");
-
-      String fileType = "jpg";
-      InputStream fis = new FileInputStream(file);
-      AddWaterMark addWaterMark = new AddWaterMark();
-      InputStream fis3 = addWaterMark.addWaterMarkTitle(fis, fileType, title);
-      InputStream fis5 = addWaterMark.addWaterMarkOrder(fis3, fileType, order);
-      InputStream fis6 = addWaterMark.addWaterMarkSongs(fis5, fileType, songs.split(","), true);
-      byte[] bytes = new byte[1024];
-      FileOutputStream downloadFile = new FileOutputStream("D:\\" + fileName + ".jpg");
-      while ((index = fis6.read(bytes)) != -1) {
-        downloadFile.write(bytes, 0, index);
-        downloadFile.flush();
+        hasMarked += lengthArr[i] * 3;
+        System.out.println("第" + han[i] + "张歌单已经做完！");
       }
-      downloadFile.close();
-      fis.close();
     } catch (Exception e) {
-      e.printStackTrace(); }
-  }
-
-  public static String ascii2native(String ascii) {
-    List ascii_s = new ArrayList();
-    String zhengz = "\\\\u[0-9,a-f,A-F]{4}";
-    Pattern p = Pattern.compile(zhengz);
-    Matcher m = p.matcher(ascii);
-    while (m.find())
-      ascii_s.add(m.group());
-
-    int i = 0; for (int j = 2; i < ascii_s.size(); ++i) {
-      String code = ((String)ascii_s.get(i)).substring(j, j + 4);
-      char ch = (char)Integer.parseInt(code, 16);
-      ascii = ascii.replace((CharSequence)ascii_s.get(i), String.valueOf(ch));
+      e.printStackTrace();
     }
-    return ascii;
   }
 }

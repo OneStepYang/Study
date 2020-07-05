@@ -28,7 +28,7 @@ import java.time.LocalTime;
  * @create: 2020-02-21 16:12
  */
 @Controller
-@RequestMapping("/test")
+@RequestMapping("/study")
 @ResponseBody
 public class StudyController {
     @Autowired
